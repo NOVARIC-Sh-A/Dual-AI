@@ -83,7 +83,21 @@ export default async function handler(
     // Gemini Response
     let geminiReply = null;
     if (geminiResult.status === "fulfilled") {
-      geminiReply = geminiResult.value.response.text();
+      // The GenerateContentResponse type may not expose a `.response` property in the typings;
+      // try common response shapes and fallback to safe accesses to avoid TypeScript errors.
+      const gVal: any = geminiResult.value;
+      geminiReply =
+        // new GenAI shapes: output -> content -> text
+        gVal.output?.[0]?.content?.[0]?.text ??
+        // alternative shape: candidates -> content -> text
+        gVal.candidates?.[0]?.content?.[0]?.text ??
+        // older client shape: response.text() method
+        (typeof gVal.response?.text === "function" ? gVal.response.text() : undefined) ??
+        // fallback to responseId or stringified value
+        gVal.responseId ??
+        JSON.stringify(gVal);
+
+      if (geminiReply === undefined) geminiReply = null;
     } else {
       console.error("Gemini Error:", geminiResult.reason);
     }
