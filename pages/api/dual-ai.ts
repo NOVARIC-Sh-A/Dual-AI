@@ -49,13 +49,15 @@ export default async function handler(
   const { prompt } = req.body;
 
   if (!prompt || typeof prompt !== 'string') {
-    return res.status(400).json({ error: 'Prompt is required and must be a string.' });
+    return res
+      .status(400)
+      .json({ error: 'Prompt is required and must be a string.' });
   }
 
   // Check API keys
   if (!process.env.GEMINI_API_KEY || !process.env.OPENAI_API_KEY) {
     return res.status(500).json({
-      error: "API keys for AI services are not configured on the server.",
+      error: 'API keys for AI services are not configured on the server.',
     });
   }
 
@@ -67,13 +69,8 @@ export default async function handler(
     // RUN BOTH MODELS IN PARALLEL
     const [geminiResult, chatgptResult] = await Promise.allSettled([
       ai.models.generateContent({
-        model: 'gemini-3.0-pro',
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: prompt }],
-          },
-        ],
+        model: 'gemini-1.5-pro',
+        contents: prompt,
       }),
 
       openai.chat.completions.create({
@@ -82,10 +79,16 @@ export default async function handler(
       }),
     ]);
 
-    // GEMINI RESPONSE
+    // GEMINI RESPONSE → FIXED
     const geminiReply =
       geminiResult.status === 'fulfilled'
-        ? geminiResult.value.response.text()
+        ? (() => {
+          const value = (geminiResult as any).value;
+          if (!value) return null;
+          // 'text' can be a getter property or a function depending on SDK version; handle both safely
+          const text = typeof value.text === 'function' ? value.text() : value.text;
+          return text ?? null;
+        })()
         : null;
 
     // CHATGPT RESPONSE
@@ -96,10 +99,10 @@ export default async function handler(
 
     // LOG ERRORS
     if (geminiResult.status === 'rejected')
-      console.error("Gemini API error:", geminiResult.reason);
+      console.error('Gemini API error:', geminiResult.reason);
 
     if (chatgptResult.status === 'rejected')
-      console.error("ChatGPT API error:", chatgptResult.reason);
+      console.error('ChatGPT API error:', chatgptResult.reason);
 
     // ASYNC LOGGING TO SUPABASE
     const source_ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
@@ -107,9 +110,10 @@ export default async function handler(
 
     // RETURN BOTH RESPONSES
     return res.status(200).json({ geminiReply, chatgptReply });
-
   } catch (error) {
     console.error('Error in /api/dual-ai:', error);
-    return res.status(500).json({ error: 'An internal server error occurred.' });
+    return res
+      .status(500)
+      .json({ error: 'An internal server error occurred.' });
   }
 }
