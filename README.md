@@ -1,20 +1,87 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Dual-AI Research Lab
 
-# Run and deploy your AI Studio app
+This is a Next.js application that provides a side-by-side comparison of responses from Gemini and ChatGPT for any given prompt. All interactions are logged to a Supabase database for research and analysis.
 
-This contains everything you need to run your app locally.
+## Getting Started
 
-View your app in AI Studio: https://ai.studio/apps/drive/1Xih5DCiCdQ8yhn0cEpnAcJPprMWzafdR
+Follow these instructions to get the project up and running on your local machine.
 
-## Run Locally
+### Prerequisites
 
-**Prerequisites:**  Node.js
+- [Node.js](https://nodejs.org/) (v18 or later recommended)
+- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
 
+### 1. Clone the repository
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+First, clone this repository to your local machine.
+
+### 2. Install Dependencies
+
+Navigate into the project directory and install the required packages.
+
+```bash
+npm install
+# or
+# yarn install
+```
+
+### 3. Set Up Environment Variables
+
+Create a file named `.env.local` in the root of your project and add the following environment variables. Replace the placeholder values with your actual keys and URLs.
+
+```
+# OpenAI API Key
+OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# Google Gemini API Key
+GOOGLE_API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# Supabase Project URL
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxxxxxxxxxxxxxxxxxxx.supabase.co
+
+# Supabase Service Role Key (for server-side operations)
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.xxxxxxxxxxxxxxxxxxxxxx.xxxxxxxxxxxxxxxxxxxxxx
+```
+
+### 4. Set Up Supabase Table
+
+Log in to your Supabase project dashboard and run the following SQL query in the SQL Editor to create the necessary `ai_lab_logs` table.
+
+```sql
+create table public.ai_lab_logs (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz default now(),
+  user_prompt text not null,
+  chatgpt_reply text,
+  gemini_reply text,
+  source_ip text,
+  meta jsonb default '{}'::jsonb
+);
+```
+
+### 5. Run the Development Server
+
+You are now ready to start the development server.
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000/ai-lab](http://localhost:3000/ai-lab) with your browser to see the application.
+
+## Deployment
+
+This Next.js application is ready for deployment on platforms that support Node.js environments.
+
+### Deploying on Vercel
+
+Vercel is the recommended platform for deploying Next.js applications.
+
+1.  Push your code to a Git repository (GitHub, GitLab, Bitbucket).
+2.  Import the repository into your Vercel dashboard.
+3.  Configure the Environment Variables in the project settings on Vercel.
+4.  Deploy! Vercel will automatically detect the Next.js framework and configure the build settings.
+
+### Deploying on Netlify or Google Cloud Run
+
+You can also deploy this application to other platforms like Netlify or Google Cloud Run. Ensure you configure the environment variables on your chosen platform. You may need to configure the build command (`npm run build`) and the start command (`npm start`).

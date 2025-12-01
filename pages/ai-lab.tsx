@@ -1,4 +1,3 @@
-
 import { useState, FormEvent } from 'react';
 import type { NextPage } from 'next';
 import Head from 'next/head';
