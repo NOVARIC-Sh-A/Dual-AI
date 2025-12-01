@@ -1,34 +1,31 @@
+
 import React from 'react';
+import { LoadingSpinner } from './icons';
 
 interface ResponsePanelProps {
   title: string;
   icon: React.ReactNode;
-  content: string;
+  content: string | null;
   isLoading: boolean;
 }
 
 const ResponsePanel: React.FC<ResponsePanelProps> = ({ title, icon, content, isLoading }) => {
-  const SkeletonLoader = () => (
-    <div className="space-y-3 animate-pulse">
-      <div className="h-4 bg-slate-700 rounded w-3/4"></div>
-      <div className="h-4 bg-slate-700 rounded w-full"></div>
-      <div className="h-4 bg-slate-700 rounded w-5/6"></div>
-      <div className="h-4 bg-slate-700 rounded w-1/2"></div>
-    </div>
-  );
-
   return (
-    <div className="bg-slate-800 rounded-2xl flex-1 flex flex-col min-w-0">
-      <div className="flex items-center gap-3 p-4 border-b border-slate-700">
+    <div className="bg-gray-800/50 rounded-lg p-4 flex flex-col flex-1 min-h-[300px] lg:min-h-0">
+      <div className="flex items-center gap-3 mb-4">
         {icon}
-        <h2 className="text-lg font-semibold text-slate-200">{title}</h2>
+        <h2 className="text-xl font-semibold text-white">{title}</h2>
       </div>
-      <div className="p-6 overflow-y-auto flex-1">
+      <div className="flex-grow overflow-y-auto text-gray-300 pr-2">
         {isLoading ? (
-          <SkeletonLoader />
+          <div className="flex items-center justify-center h-full">
+            <LoadingSpinner />
+          </div>
+        ) : content ? (
+          <div className="whitespace-pre-wrap font-mono text-sm">{content}</div>
         ) : (
-          <div className="prose prose-invert prose-p:text-slate-300 prose-p:leading-relaxed whitespace-pre-wrap break-words">
-            <p>{content}</p>
+          <div className="flex items-center justify-center h-full text-gray-500">
+            AI response will appear here.
           </div>
         )}
       </div>

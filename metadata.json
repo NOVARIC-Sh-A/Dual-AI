@@ -1,5 +1,5 @@
 {
-  "name": "Dual AI Research Lab",
-  "description": "A Next.js application that compares the outputs of ChatGPT and Gemini in one unified interface. Users can enter a single prompt and see side-by-side responses from both AI models, with all interactions logged to a Supabase database.",
+  "name": "Dual-AI Research Lab",
+  "description": "A web application to compare responses from Gemini and ChatGPT side-by-side for any given prompt. All interactions are logged for research and analysis.",
   "requestFramePermissions": []
 }
