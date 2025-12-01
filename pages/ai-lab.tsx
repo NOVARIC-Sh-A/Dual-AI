@@ -11,11 +11,15 @@ const AILabPage: NextPage = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // -----------------------------
-  // Cloud Run–Friendly API URL
-  // -----------------------------
-  const apiUrl =
-    process.env.NEXT_PUBLIC_API_URL?.trim() || "/api/dual-ai";
+  /**
+   * CLOUD RUN / PRODUCTION API URL HANDLING
+   *
+   * NEXT_PUBLIC_API_URL (ABSOLUTE) — used in Cloud Run
+   * /api/dual-ai (RELATIVE) — used in local dev
+   */
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL
+    ? process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, "") // remove trailing slash
+    : "/api/dual-ai";
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -27,7 +31,13 @@ const AILabPage: NextPage = () => {
     setChatgptReply(null);
 
     try {
-      const response = await fetch(apiUrl, {
+      // Ensure absolute URL when running in Cloud Run
+      const endpoint =
+        apiUrl.startsWith("http")
+          ? apiUrl
+          : `${window.location.origin}${apiUrl}`;
+
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt }),
@@ -95,7 +105,10 @@ const AILabPage: NextPage = () => {
           )}
 
           <div className="mt-auto sticky bottom-0 py-4 bg-gray-900/80 backdrop-blur-sm">
-            <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2">
+            <form
+              onSubmit={handleSubmit}
+              className="flex flex-col sm:flex-row gap-2"
+            >
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
