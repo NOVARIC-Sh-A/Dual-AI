@@ -1,15 +1,21 @@
-import { useState, FormEvent } from 'react';
-import type { NextPage } from 'next';
-import Head from 'next/head';
-import ResponsePanel from '../components/ResponsePanel';
-import { GeminiIcon, OpenAIIcon } from '../components/icons';
+import { useState, FormEvent } from "react";
+import type { NextPage } from "next";
+import Head from "next/head";
+import ResponsePanel from "../components/ResponsePanel";
+import { GeminiIcon, OpenAIIcon } from "../components/icons";
 
 const AILabPage: NextPage = () => {
-  const [prompt, setPrompt] = useState<string>('');
+  const [prompt, setPrompt] = useState<string>("");
   const [geminiReply, setGeminiReply] = useState<string | null>(null);
   const [chatgptReply, setChatgptReply] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  // -----------------------------
+  // Cloud Run–Friendly API URL
+  // -----------------------------
+  const apiUrl =
+    process.env.NEXT_PUBLIC_API_URL?.trim() || "/api/dual-ai";
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -21,25 +27,22 @@ const AILabPage: NextPage = () => {
     setChatgptReply(null);
 
     try {
-      const response = await fetch('/api/dual-ai', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'An unexpected error occurred.');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "An unexpected error occurred.");
       }
 
       const data = await response.json();
       setGeminiReply(data.geminiReply);
       setChatgptReply(data.chatgptReply);
-
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Request failed.");
     } finally {
       setIsLoading(false);
     }
@@ -49,7 +52,10 @@ const AILabPage: NextPage = () => {
     <>
       <Head>
         <title>Dual-AI Research Lab</title>
-        <meta name="description" content="Compare Gemini and ChatGPT responses side-by-side." />
+        <meta
+          name="description"
+          content="Compare Gemini and ChatGPT responses side-by-side."
+        />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -71,6 +77,7 @@ const AILabPage: NextPage = () => {
               content={geminiReply}
               isLoading={isLoading && !geminiReply}
             />
+
             <ResponsePanel
               title="ChatGPT Response"
               icon={<OpenAIIcon />}
@@ -81,10 +88,12 @@ const AILabPage: NextPage = () => {
 
           {error && (
             <div className="text-center p-4 mb-4 bg-red-900/50 text-red-300 rounded-md">
-              <p><strong>Error:</strong> {error}</p>
+              <p>
+                <strong>Error:</strong> {error}
+              </p>
             </div>
           )}
-          
+
           <div className="mt-auto sticky bottom-0 py-4 bg-gray-900/80 backdrop-blur-sm">
             <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2">
               <textarea
@@ -95,6 +104,7 @@ const AILabPage: NextPage = () => {
                 rows={2}
                 disabled={isLoading}
               />
+
               <button
                 type="submit"
                 disabled={isLoading || !prompt.trim()}
@@ -102,14 +112,30 @@ const AILabPage: NextPage = () => {
               >
                 {isLoading ? (
                   <>
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
                     </svg>
                     Processing...
                   </>
                 ) : (
-                  'Submit'
+                  "Submit"
                 )}
               </button>
             </form>
